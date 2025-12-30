@@ -25,6 +25,8 @@ const Header: React.FC<HeaderProps> = ({ onLogout, onMenuClick }) => {
     { id: '8', title: 'Cập nhật thiết kế', message: 'Bản vẽ thi công Dầm D1 có thay đổi chi tiết.', time: '2 ngày trước', isRead: true, type: 'warning' },
     { id: '9', title: 'Hệ thống', message: 'Bảo trì hệ thống định kỳ hoàn tất.', time: '3 ngày trước', isRead: true, type: 'info' },
     { id: '10', title: 'Nhân sự', message: 'Đã thêm 5 công nhân mới vào đội thi công 2.', time: '4 ngày trước', isRead: true, type: 'info' },
+    { id: '11', title: 'Cảnh báo thời tiết', message: 'Dự báo mưa bão trong 3 ngày tới, cần che chắn vật tư.', time: '5 ngày trước', isRead: true, type: 'warning' },
+    { id: '12', title: 'Thanh toán', message: 'Đã nhận được thanh toán đợt 2 từ Chủ đầu tư.', time: '1 tuần trước', isRead: true, type: 'success' },
   ]);
 
   const getTitle = () => {
@@ -33,14 +35,14 @@ const Header: React.FC<HeaderProps> = ({ onLogout, onMenuClick }) => {
     if (path === '/projects') return 'Danh sách dự án';
     if (path.match(/^\/projects\/[^/]+$/)) return 'Thông tin dự án';
     if (path.match(/^\/projects\/[^/]+\/schedule$/)) return 'Tiến độ thi công';
-    if (path.match(/^\/projects\/[^/]+\/logs$/)) return 'Nhật ký thi công';
+    if (path.startsWith('/logs/')) return 'Nhật ký thi công';
     return 'Quản lý';
   };
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 shrink-0 z-30">
+    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 shrink-0 relative z-40">
       <div className="flex items-center gap-3">
         <button 
           onClick={onMenuClick}
@@ -80,34 +82,39 @@ const Header: React.FC<HeaderProps> = ({ onLogout, onMenuClick }) => {
           </button>
 
           {showNotifications && (
-            <div className="fixed inset-x-4 md:absolute md:inset-auto md:right-0 mt-3 w-auto md:w-96 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
-              <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                <span className="font-bold text-slate-800">Thông báo ({unreadCount})</span>
-                <button className="text-xs text-blue-600 hover:underline font-semibold">Đã đọc tất cả</button>
-              </div>
-              <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
-                {notifications.map(n => (
-                  <div key={n.id} className={`p-4 border-b border-slate-50 hover:bg-slate-50 cursor-pointer transition-colors relative group ${!n.isRead ? 'bg-blue-50/40' : ''}`}>
-                    <div className="flex justify-between items-start gap-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          {n.type === 'success' && <div className="w-2 h-2 rounded-full bg-emerald-500"></div>}
-                          {n.type === 'warning' && <div className="w-2 h-2 rounded-full bg-amber-500"></div>}
-                          {n.type === 'info' && <div className="w-2 h-2 rounded-full bg-blue-500"></div>}
-                          <h4 className={`text-sm font-semibold ${!n.isRead ? 'text-slate-900' : 'text-slate-700'}`}>{n.title}</h4>
+            <>
+              {/* Overlay for mobile to close when clicking outside */}
+              <div className="fixed inset-0 z-[45] md:hidden" onClick={() => setShowNotifications(false)}></div>
+              
+              <div className="fixed inset-x-4 top-[70px] md:absolute md:inset-auto md:top-full md:right-0 md:mt-2 w-auto md:w-96 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-[50] animate-in fade-in slide-in-from-top-2 origin-top-right">
+                <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                  <span className="font-bold text-slate-800">Thông báo ({unreadCount})</span>
+                  <button className="text-xs text-blue-600 hover:underline font-semibold">Đã đọc tất cả</button>
+                </div>
+                <div className="max-h-[400px] overflow-y-auto custom-scrollbar overscroll-contain">
+                  {notifications.map(n => (
+                    <div key={n.id} className={`p-4 border-b border-slate-50 hover:bg-slate-50 cursor-pointer transition-colors relative group ${!n.isRead ? 'bg-blue-50/40' : ''}`}>
+                      <div className="flex justify-between items-start gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            {n.type === 'success' && <div className="w-2 h-2 rounded-full bg-emerald-500"></div>}
+                            {n.type === 'warning' && <div className="w-2 h-2 rounded-full bg-amber-500"></div>}
+                            {n.type === 'info' && <div className="w-2 h-2 rounded-full bg-blue-500"></div>}
+                            <h4 className={`text-sm font-semibold ${!n.isRead ? 'text-slate-900' : 'text-slate-700'}`}>{n.title}</h4>
+                          </div>
+                          <p className="text-xs text-slate-600 leading-relaxed">{n.message}</p>
+                          <span className="text-[10px] text-slate-400 mt-2 block font-medium">{n.time}</span>
                         </div>
-                        <p className="text-xs text-slate-600 leading-relaxed">{n.message}</p>
-                        <span className="text-[10px] text-slate-400 mt-2 block font-medium">{n.time}</span>
+                        {!n.isRead && <div className="w-2 h-2 bg-blue-600 rounded-full mt-1.5 shrink-0"></div>}
                       </div>
-                      {!n.isRead && <div className="w-2 h-2 bg-blue-600 rounded-full mt-1.5 shrink-0"></div>}
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <div className="p-3 bg-slate-50 border-t border-slate-100 text-center">
+                  <button className="text-xs font-bold text-slate-500 hover:text-blue-600">Xem tất cả thông báo</button>
+                </div>
               </div>
-              <div className="p-3 bg-slate-50 border-t border-slate-100 text-center">
-                <button className="text-xs font-bold text-slate-500 hover:text-blue-600">Xem tất cả thông báo</button>
-              </div>
-            </div>
+            </>
           )}
         </div>
 
@@ -125,23 +132,26 @@ const Header: React.FC<HeaderProps> = ({ onLogout, onMenuClick }) => {
           </div>
 
           {showProfileMenu && (
-            <div className="absolute right-0 mt-3 w-48 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-50 p-2 animate-in fade-in slide-in-from-top-2">
-              <div className="md:hidden px-4 py-2 border-b border-slate-100 mb-1">
-                <p className="text-xs font-bold text-slate-800">Hoàng Anh Lâm</p>
-                <p className="text-[10px] text-slate-400">Giám đốc dự án</p>
+            <>
+               <div className="fixed inset-0 z-[45] md:hidden" onClick={() => setShowProfileMenu(false)}></div>
+               <div className="absolute right-0 mt-3 w-48 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-[50] p-2 animate-in fade-in slide-in-from-top-2 origin-top-right">
+                <div className="md:hidden px-4 py-2 border-b border-slate-100 mb-1">
+                  <p className="text-xs font-bold text-slate-800">Hoàng Anh Lâm</p>
+                  <p className="text-[10px] text-slate-400">Giám đốc dự án</p>
+                </div>
+                <button className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors flex items-center gap-2">
+                  <Icons.Settings /> Hồ sơ cá nhân
+                </button>
+                <div className="my-1 border-t border-slate-100"></div>
+                <button 
+                  onClick={onLogout}
+                  className="w-full text-left px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                  Đăng xuất
+                </button>
               </div>
-              <button className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors flex items-center gap-2">
-                <Icons.Settings /> Hồ sơ cá nhân
-              </button>
-              <div className="my-1 border-t border-slate-100"></div>
-              <button 
-                onClick={onLogout}
-                className="w-full text-left px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 rounded-lg transition-colors flex items-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                Đăng xuất
-              </button>
-            </div>
+            </>
           )}
         </div>
       </div>

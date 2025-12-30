@@ -84,11 +84,12 @@ export default function App() {
           {/* Specific Project Context */}
           <Route path=":projectId">
             <Route index element={<ProjectDetails />} />
-            {/* Note: Schedule route kept for direct access capability, even if removed from sidebar */}
             <Route path="schedule" element={<ScheduleManager />} />
-            <Route path="logs" element={<DailyLogManager />} />
           </Route>
         </Route>
+
+        {/* Daily Logs Route (Separated) */}
+        <Route path="logs/:projectId" element={<DailyLogManager />} />
         
         {/* Other settings routes (Placeholder) */}
         <Route path="settings/*" element={<div className="p-8 text-center text-slate-500">Chức năng đang phát triển</div>} />

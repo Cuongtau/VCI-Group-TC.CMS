@@ -11,61 +11,55 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
     catalog: true,
-    operation: true,
+    settings: true,
   });
 
   const location = useLocation();
   
-  // Xác định Project Context
+  // Xác định Project Context (bao gồm cả route projects và route logs)
   const projectMatch = matchPath({ path: "/projects/:projectId/*" }, location.pathname);
   const projectDetailMatch = matchPath({ path: "/projects/:projectId", end: true }, location.pathname);
-  const currentProjectId = projectMatch?.params.projectId || projectDetailMatch?.params.projectId;
+  const logMatch = matchPath({ path: "/logs/:projectId" }, location.pathname);
+  
+  const currentProjectId = projectMatch?.params.projectId || projectDetailMatch?.params.projectId || logMatch?.params.projectId;
 
   const toggleMenu = (key: string) => {
     setExpandedMenus(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const getContextAwareLink = (type: 'details' | 'logs') => {
+  const getContextAwareLink = (type: 'logs') => {
     if (currentProjectId) {
-      switch (type) {
-        case 'details': return `/projects/${currentProjectId}`;
-        case 'logs': return `/projects/${currentProjectId}/logs`;
-      }
+       return `/logs/${currentProjectId}`;
     }
+    // Nếu chưa chọn dự án, link này sẽ dẫn về danh sách dự án để người dùng chọn
     return '/projects';
   };
 
-  // Logic kiểm tra Active Menu (Updated)
+  // Logic kiểm tra Active Menu
   const checkActive = (itemLink: string) => {
     const currentPath = location.pathname;
 
     // 1. Dashboard
     if (itemLink === '/dashboard') return currentPath === '/dashboard';
 
-    // 2. Danh sách dự án (Root)
-    // Chỉ sáng khi ở đúng trang danh sách, không sáng khi đã vào chi tiết
-    if (itemLink === '/projects') return currentPath === '/projects';
-
-    // 3. Thông tin dự án (Menu Cha ngữ cảnh)
-    if (currentProjectId) {
-      const projectRoot = `/projects/${currentProjectId}`;
-      
-      // Nếu item là "Thông tin dự án"
-      if (itemLink === projectRoot) {
-        // Sáng khi đang ở root dự án HOẶC bất kỳ trang con nào của dự án (schedule, logs, settings...)
-        // Trừ khi có menu con cụ thể khác được định nghĩa bên dưới (ví dụ Nhật ký có menu riêng thì logic này có thể override tùy ý)
-        // Ở đây ta muốn: Vào "Tiến độ" (không có menu) -> Sáng "Thông tin dự án"
-        return currentPath.startsWith(projectRoot);
-      }
-
-      // Nếu item là "Nhật ký" (Menu con cụ thể)
-      if (itemLink === `${projectRoot}/logs`) {
-        return currentPath === itemLink;
-      }
+    // 2. Nhật ký thi công
+    if (itemLink.includes('/logs')) {
+       return currentPath.startsWith('/logs');
     }
 
-    // 4. Các cài đặt khác
-    if (itemLink !== '/projects' && !itemLink.includes('/projects/')) {
+    // 3. Danh sách dự án
+    if (itemLink === '/projects') {
+       // Active khi ở trang danh sách
+       if (currentPath === '/projects') return true;
+       
+       // Active khi đang ở trong chi tiết dự án (nhưng KHÔNG phải ở trang logs)
+       if (currentProjectId && !currentPath.startsWith('/logs')) return true;
+       
+       return false;
+    }
+
+    // 4. Các mục cài đặt khác
+    if (itemLink !== '/projects' && !itemLink.includes('/projects/') && !itemLink.includes('/logs/')) {
        return currentPath.startsWith(itemLink);
     }
 
@@ -78,15 +72,13 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       label: 'QUẢN LÝ DỰ ÁN',
       items: [
         { id: 'projects', label: 'Danh sách dự án', icon: Icons.Dashboard, link: '/projects' },
-        { id: 'project_details', label: 'Thông tin dự án', icon: Icons.Project, link: getContextAwareLink('details') },
+        { id: 'logs', label: 'Nhật ký thi công', icon: Icons.Edit, link: getContextAwareLink('logs') },
       ]
     },
     {
-      id: 'operation',
-      label: 'THI CÔNG & VẬT TƯ',
+      id: 'settings',
+      label: 'CẤU HÌNH & VẬT TƯ',
       items: [
-        // Đã xóa Gantt Chart
-        { id: 'logs', label: 'Nhật ký thi công', icon: Icons.Edit, link: getContextAwareLink('logs') },
         { id: 'units', label: 'Đơn vị tính', icon: Icons.Settings, link: '/settings/units' },
         { id: 'material_types', label: 'Phân loại vật tư', icon: Icons.Settings, link: '/settings/materials' },
       ]
@@ -140,12 +132,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
             {((!isCollapsed || window.innerWidth < 1024) ? expandedMenus[section.id] : true) && (
               <div className="space-y-1 mt-2">
                 {section.items.map((item) => {
-                  // Logic hiển thị menu ngữ cảnh
-                  const isContextLinkWithoutId = !currentProjectId && (item.id === 'project_details' || item.id === 'logs');
-                  if (isContextLinkWithoutId) return null;
-
                   const isActive = checkActive(item.link);
-
                   return (
                     <Link
                       key={item.id}
