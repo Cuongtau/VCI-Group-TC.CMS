@@ -1,13 +1,12 @@
 
 import React, { useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { DailyLog } from '../types';
 import { Icons } from '../constants';
 
-interface DailyLogManagerProps {
-  selectedProjectId: string | null;
-}
-
-const DailyLogManager: React.FC<DailyLogManagerProps> = ({ selectedProjectId }) => {
+const DailyLogManager: React.FC = () => {
+  const { projectId } = useParams<{ projectId: string }>();
+  
   const [logs] = useState<DailyLog[]>([
     {
       id: 'L1',
@@ -26,6 +25,14 @@ const DailyLogManager: React.FC<DailyLogManagerProps> = ({ selectedProjectId }) 
       notes: 'Thiếu một ít vật tư ván khuôn, đã đặt bổ sung.'
     }
   ]);
+
+  if (!projectId) return (
+    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+      <div className="text-slate-400 mb-4"><Icons.Project /></div>
+      <h3 className="text-lg font-bold text-slate-800">Không tìm thấy dự án</h3>
+      <Link to="/projects" className="mt-4 text-blue-600 font-bold hover:underline">Quay lại danh sách</Link>
+    </div>
+  );
 
   return (
     <div className="p-6 h-full flex flex-col">

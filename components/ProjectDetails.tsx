@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 // Import sub-components
 import GeneralTab from './project-details/GeneralTab';
@@ -10,14 +11,15 @@ import ContractTab from './project-details/ContractTab';
 import ConfigTab from './project-details/ConfigTab';
 import HistoryPanel from './project-details/HistoryPanel';
 
-interface ProjectDetailsProps {
-  projectId: string;
-}
-
-const ProjectDetails: React.FC<ProjectDetailsProps> = ({ projectId }) => {
+const ProjectDetails: React.FC = () => {
+  const { projectId } = useParams<{ projectId: string }>();
   const [activeTab, setActiveTab] = useState('general');
   const [showHistory, setShowHistory] = useState(false);
   const [showToast, setShowToast] = useState(false);
+
+  // Trong thực tế, bạn sẽ dùng projectId để gọi API lấy dữ liệu chi tiết
+  // Ở đây chúng ta hiển thị ID để demo
+  if (!projectId) return <div>Không tìm thấy ID dự án</div>;
 
   const tabs = [
     { id: 'general', label: 'Thông tin' },
@@ -46,7 +48,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ projectId }) => {
         {/* Mobile Header Toolbar */}
         <div className="px-4 md:px-8 py-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
           <div className="min-w-0">
-            <h2 className="text-base md:text-xl font-black text-slate-800 truncate tracking-tight">DA.2025.001</h2>
+            <h2 className="text-base md:text-xl font-black text-slate-800 truncate tracking-tight">{projectId === 'P001' ? 'DA.2025.001' : projectId}</h2>
             <p className="text-[9px] md:text-xs text-slate-400 font-bold uppercase truncate">Cầu Máy Chai - Hải Phòng</p>
           </div>
           <div className="flex gap-2">

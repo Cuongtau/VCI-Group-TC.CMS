@@ -1,29 +1,34 @@
 
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Icons } from '../constants';
 import { Notification } from '../types';
 
 interface HeaderProps {
-  activeTab: string;
   onLogout: () => void;
   onMenuClick?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ activeTab, onLogout, onMenuClick }) => {
+const Header: React.FC<HeaderProps> = ({ onLogout, onMenuClick }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const location = useLocation();
+
   const [notifications] = useState<Notification[]>([
     { id: '1', title: 'Cập nhật tiến độ', message: 'Hạng mục Cọc khoan nhồi đã hoàn thành 100%', time: '5 phút trước', isRead: false, type: 'success' },
     { id: '2', title: 'Cảnh báo chậm trễ', message: 'Hạng mục Kết cấu thân P1 đang trễ 2 ngày', time: '1 giờ trước', isRead: false, type: 'warning' },
     { id: '3', title: 'Hệ thống', message: 'Sao lưu dữ liệu dự án thành công', time: '2 giờ trước', isRead: true, type: 'info' },
   ]);
 
-  const titles: Record<string, string> = {
-    dashboard: 'Tổng quan',
-    project_details: 'Thông tin dự án',
-    projects: 'Danh sách dự án',
-    progress: 'Tiến độ thi công',
-    logs: 'Nhật ký thi công',
+  const getTitle = () => {
+    const path = location.pathname;
+    if (path === '/dashboard') return 'Tổng quan';
+    if (path === '/projects') return 'Danh sách dự án';
+    // Regex để match các route chi tiết
+    if (path.match(/^\/projects\/[^/]+$/)) return 'Thông tin dự án';
+    if (path.match(/^\/projects\/[^/]+\/schedule$/)) return 'Tiến độ thi công';
+    if (path.match(/^\/projects\/[^/]+\/logs$/)) return 'Nhật ký thi công';
+    return 'Quản lý';
   };
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
@@ -38,7 +43,7 @@ const Header: React.FC<HeaderProps> = ({ activeTab, onLogout, onMenuClick }) => 
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
         </button>
         <h1 className="text-lg md:text-xl font-semibold text-slate-800 truncate max-w-[150px] md:max-w-none">
-          {titles[activeTab] || 'Quản lý'}
+          {getTitle()}
         </h1>
       </div>
 

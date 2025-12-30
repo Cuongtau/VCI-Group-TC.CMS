@@ -1,22 +1,50 @@
 
 import React, { useState } from 'react';
-import { Icons, COLORS } from '../constants';
+import { Link, useLocation, matchPath } from 'react-router-dom';
+import { Icons } from '../constants';
 
 interface SidebarProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
   onClose?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onClose }) => {
+const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
     catalog: true,
     operation: true,
   });
 
+  const location = useLocation();
+  
+  // SỬA LỖI: Dùng matchPath để kiểm tra xem URL hiện tại có khớp với pattern của dự án không
+  // useParams không hoạt động ở đây vì Sidebar nằm ở Layout (cấp cha)
+  const projectMatch = matchPath(
+    { path: "/projects/:projectId/*" },
+    location.pathname
+  );
+  
+  const currentProjectId = projectMatch?.params.projectId;
+
   const toggleMenu = (key: string) => {
     setExpandedMenus(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const isActive = (path: string) => {
+    if (path === '/dashboard' && location.pathname === '/dashboard') return true;
+    if (path !== '/dashboard' && location.pathname.startsWith(path)) return true;
+    return false;
+  };
+
+  // Helper function: Tạo link thông minh dựa trên ngữ cảnh
+  const getContextAwareLink = (type: 'details' | 'schedule' | 'logs') => {
+    if (currentProjectId) {
+      switch (type) {
+        case 'details': return `/projects/${currentProjectId}`;
+        case 'schedule': return `/projects/${currentProjectId}/schedule`;
+        case 'logs': return `/projects/${currentProjectId}/logs`;
+      }
+    }
+    return '/projects';
   };
 
   const sections = [
@@ -24,18 +52,18 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onClose }) =
       id: 'catalog',
       label: 'QUẢN LÝ DANH MỤC',
       items: [
-        { id: 'project_details', label: 'Thông tin dự án', icon: Icons.Project },
-        { id: 'projects', label: 'Danh sách dự án', icon: Icons.Dashboard },
-        { id: 'units', label: 'Đơn vị tính', icon: Icons.Settings },
-        { id: 'material_types', label: 'Phân loại vật tư', icon: Icons.Settings },
+        { id: 'project_details', label: 'Thông tin dự án', icon: Icons.Project, link: getContextAwareLink('details') },
+        { id: 'projects', label: 'Danh sách dự án', icon: Icons.Dashboard, link: '/projects' },
+        { id: 'units', label: 'Đơn vị tính', icon: Icons.Settings, link: '/settings/units' },
+        { id: 'material_types', label: 'Phân loại vật tư', icon: Icons.Settings, link: '/settings/materials' },
       ]
     },
     {
       id: 'operation',
       label: 'QUẢN LÝ THI CÔNG',
       items: [
-        { id: 'progress', label: 'Tiến độ (Gantt Chart)', icon: Icons.Progress },
-        { id: 'logs', label: 'Nhật ký thi công', icon: Icons.Edit },
+        { id: 'progress', label: 'Tiến độ (Gantt Chart)', icon: Icons.Progress, link: getContextAwareLink('schedule') },
+        { id: 'logs', label: 'Nhật ký thi công', icon: Icons.Edit, link: getContextAwareLink('logs') },
       ]
     }
   ];
@@ -75,17 +103,17 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onClose }) =
       </div>
 
       <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-6">
-        <button
-          onClick={() => setActiveTab('dashboard')}
+        <Link
+          to="/dashboard"
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-semibold ${
-            activeTab === 'dashboard'
+            location.pathname === '/dashboard'
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
               : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
           <Icons.Dashboard />
           {(!isCollapsed || window.innerWidth < 1024) && <span>Bảng điều khiển</span>}
-        </button>
+        </Link>
 
         {sections.map((section) => (
           <div key={section.id} className="space-y-2">
@@ -104,20 +132,26 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onClose }) =
             )}
             {((!isCollapsed || window.innerWidth < 1024) ? expandedMenus[section.id] : true) && (
               <div className="space-y-1 mt-2">
-                {section.items.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveTab(item.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${
-                      activeTab === item.id
-                        ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100'
-                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
-                    }`}
-                  >
-                    <item.icon />
-                    {(!isCollapsed || window.innerWidth < 1024) && <span className="flex-1 text-left">{item.label}</span>}
-                  </button>
-                ))}
+                {section.items.map((item) => {
+                  // Logic highlight: Khớp chính xác hoặc khớp prefix (trừ trường hợp /projects gốc)
+                  const isItemActive = location.pathname === item.link || 
+                                     (item.link !== '/projects' && location.pathname.startsWith(item.link));
+
+                  return (
+                    <Link
+                      key={item.id}
+                      to={item.link}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${
+                        isItemActive
+                          ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100'
+                          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                      }`}
+                    >
+                      <item.icon />
+                      {(!isCollapsed || window.innerWidth < 1024) && <span className="flex-1 text-left">{item.label}</span>}
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>

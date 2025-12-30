@@ -1,22 +1,22 @@
 
 import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { Task, Project, TaskStatus } from '../types';
 import { getMockTasks, mockProjects } from '../services/dataService';
 import TaskTable from './TaskTable';
 import GanttChart from './GanttChart';
 import { Icons } from '../constants';
 
-interface ScheduleManagerProps {
-  projectId: string;
-}
-
-const ScheduleManager: React.FC<ScheduleManagerProps> = ({ projectId }) => {
+const ScheduleManager: React.FC = () => {
+  const { projectId } = useParams<{ projectId: string }>();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [project, setProject] = useState<Project | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [activeView, setActiveView] = useState<'split' | 'table' | 'gantt'>('table');
 
   useEffect(() => {
+    if (!projectId) return;
+
     // Detect mobile and set default view
     const isMobile = window.innerWidth < 1024;
     setActiveView(isMobile ? 'table' : 'split');
@@ -48,6 +48,7 @@ const ScheduleManager: React.FC<ScheduleManagerProps> = ({ projectId }) => {
   };
 
   const handleAddTask = (parentId: string | null) => {
+    if (!projectId) return;
     const newTask: Task = {
       id: `T${Date.now()}`, projectId, name: 'Hạng mục mới', code: 'HM-' + Math.floor(Math.random() * 1000),
       level: 1, parentId: parentId, startDate: new Date().toISOString().split('T')[0],
@@ -73,6 +74,14 @@ const ScheduleManager: React.FC<ScheduleManagerProps> = ({ projectId }) => {
     };
     if (confirm('Xóa hạng mục này?')) setTasks(prev => removeFromList(prev));
   };
+
+  if (!projectId) return (
+    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+      <div className="text-slate-400 mb-4"><Icons.Project /></div>
+      <h3 className="text-lg font-bold text-slate-800">Không tìm thấy dự án</h3>
+      <Link to="/projects" className="mt-4 text-blue-600 font-bold hover:underline">Quay lại danh sách</Link>
+    </div>
+  );
 
   if (!project) return <div className="flex-1 flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div></div>;
 

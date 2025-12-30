@@ -1,14 +1,11 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { mockProjects } from '../services/dataService';
-import { Project } from '../types';
 import { Icons } from '../constants';
 
-interface ProjectListProps {
-  onSelectProject: (id: string) => void;
-}
-
-const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject }) => {
+const ProjectList: React.FC = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
 
@@ -125,13 +122,20 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject }) => {
                 <div className="h-full bg-blue-600 rounded-full" style={{ width: '65.8%' }}></div>
               </div>
 
-              <button 
-                onClick={() => onSelectProject(project.id)}
-                className="w-full bg-white border border-slate-200 py-3 rounded-xl text-xs font-bold text-slate-700 hover:bg-blue-600 hover:text-white transition-all shadow-sm flex items-center justify-center gap-2"
-              >
-                Chi tiết & Gantt
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-              </button>
+              <div className="grid grid-cols-2 gap-3">
+                <button 
+                  onClick={() => navigate(`/projects/${project.id}`)}
+                  className="bg-white border border-slate-200 py-3 rounded-xl text-xs font-bold text-slate-700 hover:bg-blue-600 hover:text-white transition-all shadow-sm flex items-center justify-center gap-2"
+                >
+                  <Icons.Project /> Chi tiết
+                </button>
+                <button 
+                  onClick={() => navigate(`/projects/${project.id}/schedule`)}
+                  className="bg-blue-600 border border-transparent py-3 rounded-xl text-xs font-bold text-white hover:bg-blue-700 transition-all shadow-sm flex items-center justify-center gap-2"
+                >
+                  <Icons.Progress /> Tiến độ
+                </button>
+              </div>
             </div>
           </div>
         ))}
