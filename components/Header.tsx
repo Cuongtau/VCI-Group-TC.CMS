@@ -16,15 +16,21 @@ const Header: React.FC<HeaderProps> = ({ onLogout, onMenuClick }) => {
 
   const [notifications] = useState<Notification[]>([
     { id: '1', title: 'Cập nhật tiến độ', message: 'Hạng mục Cọc khoan nhồi đã hoàn thành 100%', time: '5 phút trước', isRead: false, type: 'success' },
-    { id: '2', title: 'Cảnh báo chậm trễ', message: 'Hạng mục Kết cấu thân P1 đang trễ 2 ngày', time: '1 giờ trước', isRead: false, type: 'warning' },
-    { id: '3', title: 'Hệ thống', message: 'Sao lưu dữ liệu dự án thành công', time: '2 giờ trước', isRead: true, type: 'info' },
+    { id: '2', title: 'Cảnh báo chậm trễ', message: 'Hạng mục Kết cấu thân P1 đang trễ 2 ngày so với kế hoạch.', time: '1 giờ trước', isRead: false, type: 'warning' },
+    { id: '3', title: 'Phê duyệt vật tư', message: 'Yêu cầu nhập kho Thép D20 đã được phê duyệt.', time: '2 giờ trước', isRead: false, type: 'info' },
+    { id: '4', title: 'Hệ thống', message: 'Sao lưu dữ liệu dự án P001 thành công.', time: '3 giờ trước', isRead: true, type: 'info' },
+    { id: '5', title: 'Nhắc nhở họp', message: 'Cuộc họp giao ban tuần bắt đầu lúc 14:00 chiều nay.', time: '5 giờ trước', isRead: true, type: 'warning' },
+    { id: '6', title: 'Báo cáo an toàn', message: 'Đã có báo cáo an toàn lao động tuần 34.', time: '1 ngày trước', isRead: true, type: 'info' },
+    { id: '7', title: 'Nghiệm thu', message: 'Hạng mục Móng M1 đã được TVGS ký nghiệm thu.', time: '1 ngày trước', isRead: true, type: 'success' },
+    { id: '8', title: 'Cập nhật thiết kế', message: 'Bản vẽ thi công Dầm D1 có thay đổi chi tiết.', time: '2 ngày trước', isRead: true, type: 'warning' },
+    { id: '9', title: 'Hệ thống', message: 'Bảo trì hệ thống định kỳ hoàn tất.', time: '3 ngày trước', isRead: true, type: 'info' },
+    { id: '10', title: 'Nhân sự', message: 'Đã thêm 5 công nhân mới vào đội thi công 2.', time: '4 ngày trước', isRead: true, type: 'info' },
   ]);
 
   const getTitle = () => {
     const path = location.pathname;
     if (path === '/dashboard') return 'Tổng quan';
     if (path === '/projects') return 'Danh sách dự án';
-    // Regex để match các route chi tiết
     if (path.match(/^\/projects\/[^/]+$/)) return 'Thông tin dự án';
     if (path.match(/^\/projects\/[^/]+\/schedule$/)) return 'Tiến độ thi công';
     if (path.match(/^\/projects\/[^/]+\/logs$/)) return 'Nhật ký thi công';
@@ -74,21 +80,32 @@ const Header: React.FC<HeaderProps> = ({ onLogout, onMenuClick }) => {
           </button>
 
           {showNotifications && (
-            <div className="fixed inset-x-4 md:absolute md:inset-auto md:right-0 mt-3 w-auto md:w-80 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-50">
-              <div className="p-4 border-b border-slate-100 flex justify-between items-center">
-                <span className="font-bold text-slate-800">Thông báo</span>
-                <button className="text-xs text-blue-600 hover:underline">Đã đọc tất cả</button>
+            <div className="fixed inset-x-4 md:absolute md:inset-auto md:right-0 mt-3 w-auto md:w-96 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+              <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <span className="font-bold text-slate-800">Thông báo ({unreadCount})</span>
+                <button className="text-xs text-blue-600 hover:underline font-semibold">Đã đọc tất cả</button>
               </div>
-              <div className="max-h-80 md:max-h-96 overflow-y-auto">
+              <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
                 {notifications.map(n => (
-                  <div key={n.id} className={`p-4 border-b border-slate-50 hover:bg-slate-50 cursor-pointer transition-colors ${!n.isRead ? 'bg-blue-50/30' : ''}`}>
-                    <div className="flex justify-between items-start gap-2">
-                      <h4 className="text-sm font-semibold text-slate-800">{n.title}</h4>
-                      <span className="text-[10px] text-slate-400 shrink-0">{n.time}</span>
+                  <div key={n.id} className={`p-4 border-b border-slate-50 hover:bg-slate-50 cursor-pointer transition-colors relative group ${!n.isRead ? 'bg-blue-50/40' : ''}`}>
+                    <div className="flex justify-between items-start gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          {n.type === 'success' && <div className="w-2 h-2 rounded-full bg-emerald-500"></div>}
+                          {n.type === 'warning' && <div className="w-2 h-2 rounded-full bg-amber-500"></div>}
+                          {n.type === 'info' && <div className="w-2 h-2 rounded-full bg-blue-500"></div>}
+                          <h4 className={`text-sm font-semibold ${!n.isRead ? 'text-slate-900' : 'text-slate-700'}`}>{n.title}</h4>
+                        </div>
+                        <p className="text-xs text-slate-600 leading-relaxed">{n.message}</p>
+                        <span className="text-[10px] text-slate-400 mt-2 block font-medium">{n.time}</span>
+                      </div>
+                      {!n.isRead && <div className="w-2 h-2 bg-blue-600 rounded-full mt-1.5 shrink-0"></div>}
                     </div>
-                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">{n.message}</p>
                   </div>
                 ))}
+              </div>
+              <div className="p-3 bg-slate-50 border-t border-slate-100 text-center">
+                <button className="text-xs font-bold text-slate-500 hover:text-blue-600">Xem tất cả thông báo</button>
               </div>
             </div>
           )}
@@ -104,17 +121,17 @@ const Header: React.FC<HeaderProps> = ({ onLogout, onMenuClick }) => {
               <p className="text-sm font-semibold text-slate-700 group-hover:text-blue-600 transition-colors">Hoàng Anh Lâm</p>
               <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Giám Đốc Dự Án</p>
             </div>
-            <img src="https://picsum.photos/40/40" alt="Avatar" className="w-8 h-8 md:w-9 md:h-9 rounded-full border-2 border-slate-100 shadow-sm" />
+            <img src="https://picsum.photos/40/40" alt="Avatar" className="w-8 h-8 md:w-9 md:h-9 rounded-full border-2 border-slate-100 shadow-sm group-hover:border-blue-200 transition-colors" />
           </div>
 
           {showProfileMenu && (
-            <div className="absolute right-0 mt-3 w-48 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-50 p-2">
+            <div className="absolute right-0 mt-3 w-48 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-50 p-2 animate-in fade-in slide-in-from-top-2">
               <div className="md:hidden px-4 py-2 border-b border-slate-100 mb-1">
                 <p className="text-xs font-bold text-slate-800">Hoàng Anh Lâm</p>
                 <p className="text-[10px] text-slate-400">Giám đốc dự án</p>
               </div>
               <button className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors flex items-center gap-2">
-                <Icons.Settings /> Hồ sơ
+                <Icons.Settings /> Hồ sơ cá nhân
               </button>
               <div className="my-1 border-t border-slate-100"></div>
               <button 

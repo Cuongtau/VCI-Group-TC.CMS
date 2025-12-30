@@ -16,54 +16,79 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
 
   const location = useLocation();
   
-  // SỬA LỖI: Dùng matchPath để kiểm tra xem URL hiện tại có khớp với pattern của dự án không
-  // useParams không hoạt động ở đây vì Sidebar nằm ở Layout (cấp cha)
-  const projectMatch = matchPath(
-    { path: "/projects/:projectId/*" },
-    location.pathname
-  );
-  
-  const currentProjectId = projectMatch?.params.projectId;
+  // Xác định Project Context
+  const projectMatch = matchPath({ path: "/projects/:projectId/*" }, location.pathname);
+  const projectDetailMatch = matchPath({ path: "/projects/:projectId", end: true }, location.pathname);
+  const currentProjectId = projectMatch?.params.projectId || projectDetailMatch?.params.projectId;
 
   const toggleMenu = (key: string) => {
     setExpandedMenus(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const isActive = (path: string) => {
-    if (path === '/dashboard' && location.pathname === '/dashboard') return true;
-    if (path !== '/dashboard' && location.pathname.startsWith(path)) return true;
-    return false;
-  };
-
-  // Helper function: Tạo link thông minh dựa trên ngữ cảnh
-  const getContextAwareLink = (type: 'details' | 'schedule' | 'logs') => {
+  const getContextAwareLink = (type: 'details' | 'logs') => {
     if (currentProjectId) {
       switch (type) {
         case 'details': return `/projects/${currentProjectId}`;
-        case 'schedule': return `/projects/${currentProjectId}/schedule`;
         case 'logs': return `/projects/${currentProjectId}/logs`;
       }
     }
     return '/projects';
   };
 
+  // Logic kiểm tra Active Menu (Updated)
+  const checkActive = (itemLink: string) => {
+    const currentPath = location.pathname;
+
+    // 1. Dashboard
+    if (itemLink === '/dashboard') return currentPath === '/dashboard';
+
+    // 2. Danh sách dự án (Root)
+    // Chỉ sáng khi ở đúng trang danh sách, không sáng khi đã vào chi tiết
+    if (itemLink === '/projects') return currentPath === '/projects';
+
+    // 3. Thông tin dự án (Menu Cha ngữ cảnh)
+    if (currentProjectId) {
+      const projectRoot = `/projects/${currentProjectId}`;
+      
+      // Nếu item là "Thông tin dự án"
+      if (itemLink === projectRoot) {
+        // Sáng khi đang ở root dự án HOẶC bất kỳ trang con nào của dự án (schedule, logs, settings...)
+        // Trừ khi có menu con cụ thể khác được định nghĩa bên dưới (ví dụ Nhật ký có menu riêng thì logic này có thể override tùy ý)
+        // Ở đây ta muốn: Vào "Tiến độ" (không có menu) -> Sáng "Thông tin dự án"
+        return currentPath.startsWith(projectRoot);
+      }
+
+      // Nếu item là "Nhật ký" (Menu con cụ thể)
+      if (itemLink === `${projectRoot}/logs`) {
+        return currentPath === itemLink;
+      }
+    }
+
+    // 4. Các cài đặt khác
+    if (itemLink !== '/projects' && !itemLink.includes('/projects/')) {
+       return currentPath.startsWith(itemLink);
+    }
+
+    return false;
+  };
+
   const sections = [
     {
       id: 'catalog',
-      label: 'QUẢN LÝ DANH MỤC',
+      label: 'QUẢN LÝ DỰ ÁN',
       items: [
-        { id: 'project_details', label: 'Thông tin dự án', icon: Icons.Project, link: getContextAwareLink('details') },
         { id: 'projects', label: 'Danh sách dự án', icon: Icons.Dashboard, link: '/projects' },
-        { id: 'units', label: 'Đơn vị tính', icon: Icons.Settings, link: '/settings/units' },
-        { id: 'material_types', label: 'Phân loại vật tư', icon: Icons.Settings, link: '/settings/materials' },
+        { id: 'project_details', label: 'Thông tin dự án', icon: Icons.Project, link: getContextAwareLink('details') },
       ]
     },
     {
       id: 'operation',
-      label: 'QUẢN LÝ THI CÔNG',
+      label: 'THI CÔNG & VẬT TƯ',
       items: [
-        { id: 'progress', label: 'Tiến độ (Gantt Chart)', icon: Icons.Progress, link: getContextAwareLink('schedule') },
+        // Đã xóa Gantt Chart
         { id: 'logs', label: 'Nhật ký thi công', icon: Icons.Edit, link: getContextAwareLink('logs') },
+        { id: 'units', label: 'Đơn vị tính', icon: Icons.Settings, link: '/settings/units' },
+        { id: 'material_types', label: 'Phân loại vật tư', icon: Icons.Settings, link: '/settings/materials' },
       ]
     }
   ];
@@ -84,19 +109,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         </div>
         
         <div className="flex items-center gap-1">
-          {/* Mobile Close Button */}
-          <button 
-            onClick={onClose}
-            className="lg:hidden p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 transition-colors"
-          >
+          <button onClick={onClose} className="lg:hidden p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 transition-colors">
              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
-
-          {/* Desktop Collapse Button */}
-          <button 
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:block p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 transition-colors"
-          >
+          <button onClick={() => setIsCollapsed(!isCollapsed)} className="hidden lg:block p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 transition-colors">
             {isCollapsed ? <Icons.ChevronRight /> : <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>}
           </button>
         </div>
@@ -106,9 +122,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         <Link
           to="/dashboard"
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-semibold ${
-            location.pathname === '/dashboard'
-              ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
-              : 'text-slate-600 hover:bg-slate-50'
+            checkActive('/dashboard') ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
           <Icons.Dashboard />
@@ -118,31 +132,26 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         {sections.map((section) => (
           <div key={section.id} className="space-y-2">
             {(!isCollapsed || window.innerWidth < 1024) && (
-              <div 
-                className="flex items-center justify-between px-3 cursor-pointer group"
-                onClick={() => toggleMenu(section.id)}
-              >
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                  {section.label}
-                </p>
-                <div className={`transition-transform ${expandedMenus[section.id] ? 'rotate-180' : ''}`}>
-                  <Icons.ChevronDown />
-                </div>
+              <div className="flex items-center justify-between px-3 cursor-pointer group" onClick={() => toggleMenu(section.id)}>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">{section.label}</p>
+                <div className={`transition-transform ${expandedMenus[section.id] ? 'rotate-180' : ''}`}><Icons.ChevronDown /></div>
               </div>
             )}
             {((!isCollapsed || window.innerWidth < 1024) ? expandedMenus[section.id] : true) && (
               <div className="space-y-1 mt-2">
                 {section.items.map((item) => {
-                  // Logic highlight: Khớp chính xác hoặc khớp prefix (trừ trường hợp /projects gốc)
-                  const isItemActive = location.pathname === item.link || 
-                                     (item.link !== '/projects' && location.pathname.startsWith(item.link));
+                  // Logic hiển thị menu ngữ cảnh
+                  const isContextLinkWithoutId = !currentProjectId && (item.id === 'project_details' || item.id === 'logs');
+                  if (isContextLinkWithoutId) return null;
+
+                  const isActive = checkActive(item.link);
 
                   return (
                     <Link
                       key={item.id}
                       to={item.link}
                       className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${
-                        isItemActive
+                        isActive
                           ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100'
                           : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
                       }`}

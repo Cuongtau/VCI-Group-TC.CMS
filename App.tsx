@@ -35,7 +35,6 @@ const Layout = ({ onLogout }: { onLogout: () => void }) => {
         <Header onLogout={onLogout} onMenuClick={toggleSidebar} />
         
         <main className="flex-1 overflow-y-auto overflow-x-hidden">
-          {/* Outlet là nơi nội dung của các Route con sẽ hiển thị */}
           <Outlet />
         </main>
       </div>
@@ -45,7 +44,6 @@ const Layout = ({ onLogout }: { onLogout: () => void }) => {
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const location = useLocation();
 
   // Check for saved session
   useEffect(() => {
@@ -69,22 +67,33 @@ export default function App() {
 
   return (
     <Routes>
+      {/* --- Authentication Routes --- */}
       <Route path="/login" element={!isLoggedIn ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />
       
-      {/* Protected Routes - Yêu cầu đăng nhập */}
+      {/* --- Protected App Routes --- */}
       <Route path="/" element={isLoggedIn ? <Layout onLogout={handleLogout} /> : <Navigate to="/login" />}>
+        {/* Redirect root to dashboard */}
         <Route index element={<Navigate to="/dashboard" />} />
+        
         <Route path="dashboard" element={<Dashboard />} />
         
-        {/* Route Dự án */}
-        <Route path="projects" element={<ProjectList />} />
+        {/* Project Group Routes */}
+        <Route path="projects">
+          <Route index element={<ProjectList />} />
+          
+          {/* Specific Project Context */}
+          <Route path=":projectId">
+            <Route index element={<ProjectDetails />} />
+            {/* Note: Schedule route kept for direct access capability, even if removed from sidebar */}
+            <Route path="schedule" element={<ScheduleManager />} />
+            <Route path="logs" element={<DailyLogManager />} />
+          </Route>
+        </Route>
         
-        {/* Route Chi tiết từng dự án (có tham số :projectId) */}
-        <Route path="projects/:projectId" element={<ProjectDetails />} />
-        <Route path="projects/:projectId/schedule" element={<ScheduleManager />} />
-        <Route path="projects/:projectId/logs" element={<DailyLogManager />} />
-        
-        {/* Fallback cho các đường dẫn sai */}
+        {/* Other settings routes (Placeholder) */}
+        <Route path="settings/*" element={<div className="p-8 text-center text-slate-500">Chức năng đang phát triển</div>} />
+
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/dashboard" />} />
       </Route>
     </Routes>
