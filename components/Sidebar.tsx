@@ -44,7 +44,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       id: 'settings',
       label: 'CẤU HÌNH & VẬT TƯ',
       items: [
-        { id: 'materials', label: 'Quản lý vật tư', icon: Icons.Materials, link: '/materials', activeBase: '/materials' },
         { id: 'units', label: 'Đơn vị tính', icon: Icons.Settings, link: '/settings/units', activeBase: '/settings/units' },
         { id: 'material_types', label: 'Phân loại vật tư', icon: Icons.Settings, link: '/settings/materials', activeBase: '/settings/materials' },
       ]
