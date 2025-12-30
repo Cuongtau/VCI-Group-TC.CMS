@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Icons } from '../../constants';
 import { PermissionModule, DataScopeType, Role, OrgMember } from '../../types';
+import ConfirmModal from '../common/ConfirmModal';
 
 // Mock data for roles to be used in dropdown
 const mockRoles: Role[] = [
@@ -11,7 +12,7 @@ const mockRoles: Role[] = [
     { id: 'r4', name: 'Nhân viên kỹ thuật', memberCount: 5, description: 'Thực hiện công việc hiện trường' },
 ];
 
-const mockMembers: OrgMember[] = [
+const initialMembers: OrgMember[] = [
     { id: 'm1', name: 'Hoàng Anh Lâm', roleId: 'r1', roleTitle: 'Giám Đốc', email: 'lam.ha@trungchinh.vn', phone: '0988.111.222', avatar: 'https://i.pravatar.cc/150?u=1' },
     { id: 'm2', name: 'Nguyễn Văn B', roleId: 'r3', roleTitle: 'Kỹ sư', email: 'b.nguyen@trungchinh.vn', phone: '0988.333.444', avatar: 'https://i.pravatar.cc/150?u=2' },
     { id: 'm3', name: 'Trần Văn C', roleId: 'r3', roleTitle: 'Kỹ sư', email: 'c.tran@trungchinh.vn', phone: '0988.555.666', avatar: 'https://i.pravatar.cc/150?u=3' },
@@ -24,6 +25,7 @@ interface PermissionsTabProps {
 const PermissionsTab: React.FC<PermissionsTabProps> = ({ onShowToast }) => {
   const [activePermSubTab, setActivePermSubTab] = useState<'functional' | 'users' | 'data'>('functional');
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>('r1');
+  const [members, setMembers] = useState<OrgMember[]>(initialMembers);
   
   // State for permissions
   const [permissionModules, setPermissionModules] = useState<PermissionModule[]>([
@@ -44,6 +46,13 @@ const PermissionsTab: React.FC<PermissionsTabProps> = ({ onShowToast }) => {
     'r1': { 'pm1': 'all', 'pm1.1': 'all', 'pm2': 'all' },
     'r3': { 'pm1': 'department', 'pm2': 'department' },
     'r4': { 'pm1': 'personal', 'pm2': 'personal' }
+  });
+
+  // Delete User Modal State
+  const [deleteUserModal, setDeleteUserModal] = useState<{ isOpen: boolean; id: string; name: string }>({
+    isOpen: false,
+    id: '',
+    name: ''
   });
 
   const togglePermission = (moduleId: string, type: keyof PermissionModule['permissions']) => {
@@ -70,6 +79,15 @@ const PermissionsTab: React.FC<PermissionsTabProps> = ({ onShowToast }) => {
   const getScopeForModule = (moduleId: string): DataScopeType => {
     if (!selectedRoleId) return 'personal';
     return dataScopes[selectedRoleId]?.[moduleId] || 'personal';
+  };
+
+  const initiateDeleteUser = (m: OrgMember) => {
+    setDeleteUserModal({ isOpen: true, id: m.id, name: m.name });
+  };
+
+  const confirmDeleteUser = () => {
+    setMembers(prev => prev.filter(m => m.id !== deleteUserModal.id));
+    onShowToast();
   };
 
   const renderPermFunctional = () => {
@@ -132,7 +150,7 @@ const PermissionsTab: React.FC<PermissionsTabProps> = ({ onShowToast }) => {
   };
 
   const renderPermUsers = () => {
-    const roleMembers = mockMembers.filter(m => m.roleId === selectedRoleId);
+    const roleMembers = members.filter(m => m.roleId === selectedRoleId);
     
     return (
       <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm animate-in fade-in slide-in-from-bottom-2 flex flex-col min-h-[400px]">
@@ -183,7 +201,10 @@ const PermissionsTab: React.FC<PermissionsTabProps> = ({ onShowToast }) => {
                            </span>
                         </td>
                         <td className="px-6 py-3 text-right">
-                           <button className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded transition-all opacity-0 group-hover:opacity-100">
+                           <button 
+                             onClick={() => initiateDeleteUser(member)}
+                             className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded transition-all opacity-0 group-hover:opacity-100"
+                           >
                               <Icons.Delete />
                            </button>
                         </td>
@@ -330,6 +351,14 @@ const PermissionsTab: React.FC<PermissionsTabProps> = ({ onShowToast }) => {
           {activePermSubTab === 'users' && renderPermUsers()}
           {activePermSubTab === 'data' && renderPermData()}
        </div>
+
+       {/* Confirm Modal */}
+       <ConfirmModal 
+         isOpen={deleteUserModal.isOpen}
+         onClose={() => setDeleteUserModal({ ...deleteUserModal, isOpen: false })}
+         onConfirm={confirmDeleteUser}
+         message={<span>Bạn có muốn xóa người dùng <b>[{deleteUserModal.name}]</b> khỏi chức danh này không?</span>}
+       />
     </div>
   );
 };

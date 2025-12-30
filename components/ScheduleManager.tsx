@@ -6,6 +6,7 @@ import { getMockTasks, mockProjects } from '../services/dataService';
 import TaskTable from './TaskTable';
 import GanttChart from './GanttChart';
 import { Icons } from '../constants';
+import ConfirmModal from './common/ConfirmModal';
 
 const ScheduleManager: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -13,6 +14,13 @@ const ScheduleManager: React.FC = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [activeView, setActiveView] = useState<'split' | 'table' | 'gantt'>('table');
+  
+  // Delete Modal State
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; taskId: string; taskName: string }>({
+    isOpen: false,
+    taskId: '',
+    taskName: ''
+  });
 
   useEffect(() => {
     if (!projectId) return;
@@ -68,11 +76,28 @@ const ScheduleManager: React.FC = () => {
     }
   };
 
-  const handleDeleteTask = (taskId: string) => {
+  // Helper to find task name recursively
+  const findTaskName = (taskList: Task[], id: string): string => {
+    for (const t of taskList) {
+        if (t.id === id) return t.name;
+        if (t.subTasks) {
+            const found = findTaskName(t.subTasks, id);
+            if (found) return found;
+        }
+    }
+    return '';
+  };
+
+  const initiateDeleteTask = (taskId: string) => {
+    const name = findTaskName(tasks, taskId);
+    setDeleteModal({ isOpen: true, taskId, taskName: name });
+  };
+
+  const confirmDeleteTask = () => {
     const removeFromList = (taskList: Task[]): Task[] => {
-      return taskList.filter(t => t.id !== taskId).map(t => ({ ...t, subTasks: t.subTasks ? removeFromList(t.subTasks) : undefined }));
+      return taskList.filter(t => t.id !== deleteModal.taskId).map(t => ({ ...t, subTasks: t.subTasks ? removeFromList(t.subTasks) : undefined }));
     };
-    if (confirm('Xóa hạng mục này?')) setTasks(prev => removeFromList(prev));
+    setTasks(prev => removeFromList(prev));
   };
 
   if (!projectId) return (
@@ -135,7 +160,7 @@ const ScheduleManager: React.FC = () => {
               <button onClick={() => handleAddTask(null)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"><Icons.Plus /></button>
             </div>
             <div className="flex-1 overflow-auto">
-              <TaskTable tasks={tasks} onToggleExpand={handleToggleExpand} onUpdateTask={handleUpdateTask} onDeleteTask={handleDeleteTask} onAddTask={handleAddTask} />
+              <TaskTable tasks={tasks} onToggleExpand={handleToggleExpand} onUpdateTask={handleUpdateTask} onDeleteTask={initiateDeleteTask} onAddTask={handleAddTask} />
             </div>
           </div>
         )}
@@ -162,6 +187,13 @@ const ScheduleManager: React.FC = () => {
           Lưu tất cả thay đổi
         </button>
       </div>
+
+      <ConfirmModal 
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+        onConfirm={confirmDeleteTask}
+        message={<span>Bạn có muốn xóa hạng mục <b>[{deleteModal.taskName}]</b> không?</span>}
+      />
     </div>
   );
 };

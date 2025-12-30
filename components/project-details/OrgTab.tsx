@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { Icons } from '../../constants';
 import { Role, OrgMember } from '../../types';
+import ConfirmModal from '../common/ConfirmModal';
 
 interface OrgTabProps {
   onShowToast: () => void;
@@ -29,6 +30,9 @@ const OrgTab: React.FC<OrgTabProps> = ({ onShowToast }) => {
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+
+  // Delete State
+  const [deleteMemberData, setDeleteMemberData] = useState<{isOpen: boolean, id: string, name: string}>({isOpen: false, id: '', name: ''});
 
   const [roles, setRoles] = useState<Role[]>([
     { id: 'r1', name: 'Giám đốc dự án', memberCount: 1, description: 'Quản trị viên cao nhất của dự án' },
@@ -67,8 +71,7 @@ const OrgTab: React.FC<OrgTabProps> = ({ onShowToast }) => {
       const searchLower = searchTerm.toLowerCase();
       // Lọc theo tên hoặc email
       const matchSearch = emp.name.toLowerCase().includes(searchLower) || emp.email.toLowerCase().includes(searchLower);
-      // Lọc những người CHƯA có trong role hiện tại (để tránh trùng lặp trong UI hiển thị nếu muốn, 
-      // nhưng ở đây ta cho phép hiển thị hết để demo, hoặc có thể lọc những người đã add rồi)
+      // Lọc những người CHƯA có trong role hiện tại
       const isAlreadyInRole = members.some(m => m.roleId === selectedRoleId && m.email === emp.email);
       return matchSearch && !isAlreadyInRole;
     });
@@ -118,6 +121,24 @@ const OrgTab: React.FC<OrgTabProps> = ({ onShowToast }) => {
 
     setShowAddMemberModal(false);
     onShowToast();
+  };
+
+  const initiateDeleteMember = (m: OrgMember) => {
+    setDeleteMemberData({ isOpen: true, id: m.id, name: m.name });
+  };
+
+  const confirmDeleteMember = () => {
+      const member = members.find(m => m.id === deleteMemberData.id);
+      if (member) {
+          setMembers(prev => prev.filter(m => m.id !== deleteMemberData.id));
+          // Update count
+          setRoles(prev => prev.map(r => 
+            r.id === member.roleId 
+              ? { ...r, memberCount: Math.max(0, r.memberCount - 1) } 
+              : r
+          ));
+          onShowToast();
+      }
   };
 
   // --- Render Modals ---
@@ -297,7 +318,12 @@ const OrgTab: React.FC<OrgTabProps> = ({ onShowToast }) => {
                     <h4 className="text-sm font-bold text-slate-800">{member.name}</h4>
                     <p className="text-xs text-slate-500 truncate">{member.email} • {member.phone}</p>
                   </div>
-                  <button className="text-slate-300 hover:text-rose-500 p-2 opacity-0 group-hover:opacity-100 transition-opacity"><Icons.Delete /></button>
+                  <button 
+                    onClick={() => initiateDeleteMember(member)}
+                    className="text-slate-300 hover:text-rose-500 p-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Icons.Delete />
+                  </button>
                 </div>
               ))
             ) : (
@@ -309,6 +335,14 @@ const OrgTab: React.FC<OrgTabProps> = ({ onShowToast }) => {
           </div>
         </div>
       </div>
+
+      {/* Confirm Delete Member Modal */}
+      <ConfirmModal 
+        isOpen={deleteMemberData.isOpen}
+        onClose={() => setDeleteMemberData({ ...deleteMemberData, isOpen: false })}
+        onConfirm={confirmDeleteMember}
+        message={<span>Bạn có muốn xóa nhân sự <b>[{deleteMemberData.name}]</b> khỏi chức danh này không?</span>}
+      />
     </>
   );
 };

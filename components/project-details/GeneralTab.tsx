@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { Icons } from '../../constants';
 import { ProjectInfo } from '../../types';
+import ConfirmModal from '../common/ConfirmModal';
 
 interface GeneralTabProps {
   onShowToast: () => void;
@@ -26,6 +27,12 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ onShowToast }) => {
     description: 'Dự án trọng điểm kết nối giao thông khu vực cảng biển, quy mô 4 làn xe cơ giới...'
   });
   const [backupProjectInfo, setBackupProjectInfo] = useState<ProjectInfo | null>(null);
+
+  // Delete Modal
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; index: number | null }>({
+    isOpen: false,
+    index: null
+  });
 
   const handleEditInfo = () => {
     setBackupProjectInfo({ ...projectInfo });
@@ -57,9 +64,15 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ onShowToast }) => {
     }
   };
 
-  const handleRemoveImage = (index: number) => {
-    setProjectImages(prev => prev.filter((_, i) => i !== index));
-    onShowToast();
+  const initiateRemoveImage = (index: number) => {
+    setDeleteModal({ isOpen: true, index });
+  };
+
+  const confirmRemoveImage = () => {
+    if (deleteModal.index !== null) {
+        setProjectImages(prev => prev.filter((_, i) => i !== deleteModal.index));
+        onShowToast();
+    }
   };
 
   return (
@@ -76,7 +89,7 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ onShowToast }) => {
                  <>
                    <img src={projectImages[0]} alt="Main Project" className="w-full h-full object-cover" />
                    <button 
-                      onClick={() => handleRemoveImage(0)}
+                      onClick={() => initiateRemoveImage(0)}
                       className="absolute top-2 right-2 p-1.5 bg-white/80 hover:bg-rose-500 hover:text-white text-slate-600 rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-sm"
                    >
                      <Icons.Delete />
@@ -97,7 +110,7 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ onShowToast }) => {
                       <img src={img} alt={`Thumb ${idx}`} className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                          <button 
-                            onClick={() => handleRemoveImage(idx + 1)}
+                            onClick={() => initiateRemoveImage(idx + 1)}
                             className="text-white hover:text-rose-400"
                          >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -127,7 +140,7 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ onShowToast }) => {
              </p>
           </div>
         </div>
-
+        
         {/* Right Column: Form Fields */}
         <div className="flex-1">
           <div className="flex justify-between items-center mb-6">
@@ -260,6 +273,13 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ onShowToast }) => {
           </div>
         </div>
       </div>
+
+      <ConfirmModal 
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+        onConfirm={confirmRemoveImage}
+        message="Bạn có chắc chắn muốn xóa hình ảnh này không?"
+      />
     </div>
   );
 };

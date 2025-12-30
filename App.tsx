@@ -9,6 +9,15 @@ import ScheduleManager from './components/ScheduleManager';
 import DailyLogManager from './components/DailyLogManager';
 import ProjectDetails from './components/ProjectDetails';
 import Login from './components/Login';
+import ConfirmModal from './components/common/ConfirmModal';
+
+// Resources
+import MaterialManager from './components/resources/MaterialManager';
+import EquipmentManager from './components/resources/EquipmentManager';
+
+// Settings
+import UnitManager from './components/settings/UnitManager';
+import CategoryManager from './components/settings/CategoryManager';
 
 // Layout Component chứa Sidebar và Header cố định
 const Layout = ({ onLogout }: { onLogout: () => void }) => {
@@ -44,6 +53,7 @@ const Layout = ({ onLogout }: { onLogout: () => void }) => {
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   // Check for saved session
   useEffect(() => {
@@ -58,45 +68,68 @@ export default function App() {
     localStorage.setItem('tc_session', 'active');
   };
 
-  const handleLogout = () => {
-    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-      setIsLoggedIn(false);
-      localStorage.removeItem('tc_session');
-    }
+  const handleLogoutClick = () => {
+    setIsLogoutModalOpen(true);
+  };
+
+  const confirmLogout = () => {
+    setIsLoggedIn(false);
+    localStorage.removeItem('tc_session');
+    setIsLogoutModalOpen(false);
   };
 
   return (
-    <Routes>
-      {/* --- Authentication Routes --- */}
-      <Route path="/login" element={!isLoggedIn ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />
-      
-      {/* --- Protected App Routes --- */}
-      <Route path="/" element={isLoggedIn ? <Layout onLogout={handleLogout} /> : <Navigate to="/login" />}>
-        {/* Redirect root to dashboard */}
-        <Route index element={<Navigate to="/dashboard" />} />
+    <>
+      <Routes>
+        {/* --- Authentication Routes --- */}
+        <Route path="/login" element={!isLoggedIn ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />
         
-        <Route path="dashboard" element={<Dashboard />} />
-        
-        {/* Project Group Routes - Start with /projects */}
-        <Route path="projects">
-          <Route index element={<ProjectList />} />
-          <Route path=":projectId">
-            <Route index element={<ProjectDetails />} />
-            <Route path="schedule" element={<ScheduleManager />} />
+        {/* --- Protected App Routes --- */}
+        <Route path="/" element={isLoggedIn ? <Layout onLogout={handleLogoutClick} /> : <Navigate to="/login" />}>
+          {/* Redirect root to dashboard */}
+          <Route index element={<Navigate to="/dashboard" />} />
+          
+          <Route path="dashboard" element={<Dashboard />} />
+          
+          {/* Project Group Routes - Start with /projects */}
+          <Route path="projects">
+            <Route index element={<ProjectList />} />
+            <Route path=":projectId">
+              <Route index element={<ProjectDetails />} />
+              <Route path="schedule" element={<ScheduleManager />} />
+            </Route>
           </Route>
+
+          {/* Daily Logs Route */}
+          <Route path="logs" element={<ProjectList />} />
+          <Route path="logs/:projectId" element={<DailyLogManager />} />
+          
+          {/* Resources Routes */}
+          <Route path="resources">
+              <Route path="materials" element={<MaterialManager />} />
+              <Route path="equipment" element={<EquipmentManager />} />
+          </Route>
+
+          {/* Settings Routes */}
+          <Route path="settings">
+              <Route path="units" element={<UnitManager />} />
+              <Route path="categories" element={<CategoryManager />} />
+          </Route>
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/dashboard" />} />
         </Route>
+      </Routes>
 
-        {/* Daily Logs Route - Start with /logs */}
-        {/* Route /logs sẽ hiển thị danh sách dự án để chọn ghi nhật ký */}
-        <Route path="logs" element={<ProjectList />} />
-        <Route path="logs/:projectId" element={<DailyLogManager />} />
-        
-        {/* Other settings routes (Placeholder) */}
-        <Route path="settings/*" element={<div className="p-8 text-center text-slate-500">Chức năng đang phát triển</div>} />
-
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/dashboard" />} />
-      </Route>
-    </Routes>
+      <ConfirmModal 
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={confirmLogout}
+        title="Đăng xuất"
+        message="Bạn có chắc chắn muốn đăng xuất khỏi hệ thống không?"
+        confirmLabel="Đăng xuất"
+        type="danger"
+      />
+    </>
   );
 }

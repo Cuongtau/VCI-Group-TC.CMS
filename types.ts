@@ -133,4 +133,48 @@ export interface ProjectInfo {
   description: string;
 }
 
+// --- Resources & Config ---
+
+export interface Material {
+  id: string;
+  code: string;
+  name: string;
+  categoryId: string; // Updated reference
+  categoryName: string;
+  unitId: string; // Updated reference
+  unitName: string;
+  inStock: number;
+  minStock: number;
+  unitPrice: number;
+  status: 'good' | 'low' | 'out';
+  lastUpdated: string;
+  description?: string;
+}
+
+export interface Equipment {
+  id: string;
+  code: string;
+  name: string;
+  type: string;
+  status: 'available' | 'in_use' | 'maintenance' | 'broken';
+  location: string; // Project ID or Warehouse
+  purchaseDate: string;
+  value: number;
+}
+
+export interface Unit {
+  id: string;
+  name: string;
+  description?: string;
+  isSystem?: boolean; // System default units cannot be deleted
+}
+
+export interface Category {
+  id: string;
+  code: string;
+  name: string;
+  type: 'material' | 'equipment';
+  description?: string;
+}
+
 export type DataScopeType = 'personal' | 'department' | 'all';

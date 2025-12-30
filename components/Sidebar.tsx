@@ -11,7 +11,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
     catalog: true,
-    settings: true,
+    resources: true,
+    config: true,
   });
 
   const location = useLocation();
@@ -27,7 +28,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     // Dashboard
     if (itemLink === '/dashboard') return currentPath === '/dashboard';
 
-    // Các mục khác
+    // Exact Match for settings to prevent overlaps if necessary
+    if (itemLink.startsWith('/settings')) return currentPath === itemLink;
+
+    // Các mục khác match startWith
     return currentPath.startsWith(itemLink);
   };
 
@@ -37,35 +41,51 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       label: 'QUẢN LÝ DỰ ÁN',
       items: [
         { id: 'projects', label: 'Danh sách dự án', icon: Icons.Dashboard, link: '/projects', activeBase: '/projects' },
-        // Đã bỏ menu Nhật ký thi công riêng, truy cập thông qua Danh sách dự án
       ]
     },
     {
-      id: 'settings',
-      label: 'CẤU HÌNH & VẬT TƯ',
+      id: 'resources',
+      label: 'QUẢN LÝ NGUỒN LỰC',
       items: [
-        { id: 'units', label: 'Đơn vị tính', icon: Icons.Settings, link: '/settings/units', activeBase: '/settings/units' },
-        { id: 'material_types', label: 'Phân loại vật tư', icon: Icons.Settings, link: '/settings/materials', activeBase: '/settings/materials' },
+        { id: 'materials', label: 'Kho Vật tư', icon: Icons.Cube, link: '/resources/materials', activeBase: '/resources/materials' },
+        { id: 'equipment', label: 'Máy & Thiết bị', icon: Icons.Truck, link: '/resources/equipment', activeBase: '/resources/equipment' },
+      ]
+    },
+    {
+      id: 'config',
+      label: 'DANH MỤC & CẤU HÌNH',
+      items: [
+        { id: 'units', label: 'Đơn vị tính', icon: Icons.Tag, link: '/settings/units', activeBase: '/settings/units' },
+        { id: 'categories', label: 'Phân loại vật tư', icon: Icons.Category, link: '/settings/categories', activeBase: '/settings/categories' },
       ]
     }
   ];
 
   return (
     <aside className={`h-full bg-white border-r border-slate-200 transition-all duration-300 flex flex-col ${isCollapsed ? 'w-20' : 'w-72 lg:w-64'}`}>
-      <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-blue-700 rounded flex items-center justify-center text-white font-black text-xl shadow-inner">
-            TC
-          </div>
-          {!isCollapsed && (
-            <span className="font-bold text-slate-800 text-sm leading-tight">
-              TRUNG CHINH<br/>
-              <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Construction</span>
-            </span>
-          )}
+      {/* Header Sidebar - Workspace Switcher Style */}
+      <div className="p-4 border-b border-slate-200 flex items-center justify-between gap-2">
+        <div className={`flex items-center gap-3 overflow-hidden ${!isCollapsed ? 'flex-1 cursor-pointer p-2 -ml-2 rounded-xl hover:bg-slate-50 transition-colors group' : 'justify-center'}`}>
+           <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200 shrink-0">
+             {/* Abstract Building Logo */}
+             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+           </div>
+           
+           {!isCollapsed && (
+             <div className="flex-1 min-w-0 flex items-center justify-between">
+                <div>
+                  <h3 className="font-black text-slate-800 text-sm truncate leading-tight group-hover:text-blue-700 transition-colors">Trung Chinh Corp</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">Enterprise Workspace</p>
+                </div>
+                <div className="text-slate-300 group-hover:text-blue-600 transition-colors transform group-hover:translate-y-0.5 duration-200">
+                  <Icons.ChevronDown />
+                </div>
+             </div>
+           )}
         </div>
         
-        <div className="flex items-center gap-1">
+        {/* Toggle Button */}
+        <div className="flex items-center shrink-0">
           <button onClick={onClose} className="lg:hidden p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 transition-colors">
              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
@@ -118,18 +138,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           </div>
         ))}
       </nav>
-
-      <div className="p-4 border-t border-slate-100">
-        <div className="bg-slate-900 p-4 rounded-2xl flex items-center gap-3 text-white">
-          <img src="https://picsum.photos/40/40?grayscale" alt="Avatar" className="w-10 h-10 rounded-xl border border-white/20" />
-          {(!isCollapsed || window.innerWidth < 1024) && (
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold truncate">Hoàng Anh Lâm</p>
-              <p className="text-[10px] text-slate-400 truncate uppercase">Giám Đốc Dự Án</p>
-            </div>
-          )}
-        </div>
-      </div>
     </aside>
   );
 };
