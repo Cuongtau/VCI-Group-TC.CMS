@@ -8,6 +8,7 @@ import ProjectList from './components/ProjectList';
 import ScheduleManager from './components/ScheduleManager';
 import DailyLogManager from './components/DailyLogManager';
 import ProjectDetails from './components/ProjectDetails';
+import MaterialsManager from './components/MaterialsManager';
 import Login from './components/Login';
 
 // Layout Component chứa Sidebar và Header cố định
@@ -90,6 +91,9 @@ export default function App() {
         {/* Route /logs sẽ hiển thị danh sách dự án để chọn ghi nhật ký */}
         <Route path="logs" element={<ProjectList />} />
         <Route path="logs/:projectId" element={<DailyLogManager />} />
+
+        {/* Materials Management Route */}
+        <Route path="materials" element={<MaterialsManager />} />
         
         {/* Other settings routes (Placeholder) */}
         <Route path="settings/*" element={<div className="p-8 text-center text-slate-500">Chức năng đang phát triển</div>} />

@@ -134,3 +134,51 @@ export interface ProjectInfo {
 }
 
 export type DataScopeType = 'personal' | 'department' | 'all';
+
+// --- Materials Management Types ---
+
+export interface MaterialCategory {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+}
+
+export interface Material {
+  id: string;
+  code: string;
+  name: string;
+  categoryId: string;
+  categoryName?: string;
+  unit: string;
+  unitPrice: number;
+  description?: string;
+  notes?: string;
+}
+
+export interface MaterialInventory {
+  id: string;
+  materialId: string;
+  materialName?: string;
+  materialCode?: string;
+  quantity: number;
+  usedQuantity: number;
+  availableQuantity: number;
+  unit: string;
+  location: string;
+  lastUpdated: string;
+  notes?: string;
+}
+
+export interface MaterialTransaction {
+  id: string;
+  materialId: string;
+  materialName?: string;
+  type: 'import' | 'export' | 'usage';
+  quantity: number;
+  unit: string;
+  date: string;
+  reason: string;
+  notes?: string;
+  createdBy: string;
+}
