@@ -76,14 +76,19 @@ const DailyLogManager: React.FC = () => {
     <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
       <div className="text-slate-400 mb-4"><Icons.Project /></div>
       <h3 className="text-lg font-bold text-slate-800">Không tìm thấy dự án</h3>
-      <Link to="/projects" className="mt-4 text-blue-600 font-bold hover:underline">Quay lại danh sách</Link>
+      <Link to="/logs" className="mt-4 text-blue-600 font-bold hover:underline">Quay lại danh sách</Link>
     </div>
   );
 
   return (
     <div className="p-6 h-full flex flex-col relative">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-slate-800">Nhật ký tiến độ thi công</h2>
+        <div className="flex items-center gap-3">
+            <Link to="/logs" className="text-slate-400 hover:text-blue-600 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            </Link>
+            <h2 className="text-xl font-bold text-slate-800">Nhật ký tiến độ thi công</h2>
+        </div>
         <button 
             onClick={() => setShowAddModal(true)}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium hover:bg-blue-700 transition-colors shadow-sm"

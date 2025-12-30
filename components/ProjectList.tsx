@@ -14,13 +14,29 @@ const ProjectList: React.FC = () => {
     return matchesSearch;
   });
 
+  const goToDetails = (projectId: string) => {
+    navigate(`/projects/${projectId}`);
+  };
+
+  const goToSchedule = (projectId: string) => {
+    navigate(`/projects/${projectId}/schedule`);
+  };
+
+  const goToLogs = (projectId: string) => {
+    navigate(`/logs/${projectId}`);
+  };
+
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8">
       {/* Header Section */}
       <div className="flex flex-col gap-6">
         <div className="text-center md:text-left">
-          <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Danh mục Dự án</h2>
-          <p className="text-sm text-slate-500 mt-1">Theo dõi toàn bộ danh sách các dự án đang triển khai.</p>
+          <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">
+            Danh mục Dự án
+          </h2>
+          <p className="text-sm text-slate-500 mt-1">
+            Theo dõi tiến độ, quản lý nhật ký và thông tin chi tiết các dự án.
+          </p>
         </div>
         
         <div className="flex flex-col md:flex-row items-center gap-3">
@@ -70,10 +86,11 @@ const ProjectList: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
         {projects.map((project) => (
           <div key={project.id} className="bg-white border border-slate-200 rounded-3xl overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col h-full shadow-sm">
-            <div className="p-6 flex-1">
+            {/* Clickable Area for Details */}
+            <div className="p-6 flex-1 cursor-pointer" onClick={() => goToDetails(project.id)}>
               <div className="flex justify-between items-start mb-4">
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-black tracking-widest bg-blue-50 text-blue-600 px-2 py-1 rounded-lg w-fit mb-2">
+                  <span className="text-[10px] font-black tracking-widest bg-blue-50 text-blue-600 px-2 py-1 rounded-lg w-fit mb-2 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                     {project.code}
                   </span>
                   <h3 className="text-lg md:text-xl font-bold text-slate-800 group-hover:text-blue-600 transition-colors leading-tight">
@@ -84,7 +101,7 @@ const ProjectList: React.FC = () => {
 
               <div className="space-y-3 mb-6">
                  <div className="flex items-center gap-3">
-                    <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                    <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     </div>
                     <div>
@@ -93,7 +110,7 @@ const ProjectList: React.FC = () => {
                     </div>
                  </div>
                  <div className="flex items-center gap-3">
-                    <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                    <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                     </div>
                     <div>
@@ -108,34 +125,21 @@ const ProjectList: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-6 bg-slate-50/50 border-t border-slate-100 mt-auto">
-              <div className="flex justify-between items-end mb-3">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tiến độ tổng thể: <span className="text-blue-600 font-black">65.8%</span></span>
-                <div className="flex -space-x-1.5">
-                  {[1, 2, 3].map(i => (
-                    <img key={i} src={`https://picsum.photos/24/24?sig=${project.id+i}`} className="w-6 h-6 rounded-full border-2 border-white shadow-sm" alt="Member" />
-                  ))}
-                </div>
-              </div>
-
-              <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden mb-5">
-                <div className="h-full bg-blue-600 rounded-full" style={{ width: '65.8%' }}></div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <button 
-                  onClick={() => navigate(`/projects/${project.id}`)}
-                  className="bg-white border border-slate-200 py-3 rounded-xl text-xs font-bold text-slate-700 hover:bg-blue-600 hover:text-white transition-all shadow-sm flex items-center justify-center gap-2"
-                >
-                  <Icons.Project /> Chi tiết
-                </button>
-                <button 
-                  onClick={() => navigate(`/projects/${project.id}/schedule`)}
-                  className="bg-blue-600 border border-transparent py-3 rounded-xl text-xs font-bold text-white hover:bg-blue-700 transition-all shadow-sm flex items-center justify-center gap-2"
-                >
-                  <Icons.Progress /> Tiến độ
-                </button>
-              </div>
+            {/* Action Buttons */}
+            <div className="p-4 bg-slate-50/50 border-t border-slate-100 mt-auto grid grid-cols-2 gap-3">
+              <button 
+                onClick={() => goToSchedule(project.id)}
+                className="bg-white border border-slate-200 py-2.5 rounded-xl text-xs font-bold text-blue-700 hover:bg-blue-600 hover:text-white hover:border-transparent transition-all shadow-sm flex items-center justify-center gap-2 uppercase tracking-wide"
+              >
+                <Icons.Progress /> Tiến độ
+              </button>
+              
+              <button 
+                onClick={() => goToLogs(project.id)}
+                className="bg-white border border-slate-200 py-2.5 rounded-xl text-xs font-bold text-emerald-600 hover:bg-emerald-600 hover:text-white hover:border-transparent transition-all shadow-sm flex items-center justify-center gap-2 uppercase tracking-wide"
+              >
+                <Icons.Edit /> Nhật ký
+              </button>
             </div>
           </div>
         ))}

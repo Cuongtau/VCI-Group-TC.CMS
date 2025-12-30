@@ -77,18 +77,18 @@ export default function App() {
         
         <Route path="dashboard" element={<Dashboard />} />
         
-        {/* Project Group Routes */}
+        {/* Project Group Routes - Start with /projects */}
         <Route path="projects">
           <Route index element={<ProjectList />} />
-          
-          {/* Specific Project Context */}
           <Route path=":projectId">
             <Route index element={<ProjectDetails />} />
             <Route path="schedule" element={<ScheduleManager />} />
           </Route>
         </Route>
 
-        {/* Daily Logs Route (Separated) */}
+        {/* Daily Logs Route - Start with /logs */}
+        {/* Route /logs sẽ hiển thị danh sách dự án để chọn ghi nhật ký */}
+        <Route path="logs" element={<ProjectList />} />
         <Route path="logs/:projectId" element={<DailyLogManager />} />
         
         {/* Other settings routes (Placeholder) */}

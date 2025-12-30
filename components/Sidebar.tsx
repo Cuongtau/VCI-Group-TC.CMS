@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link, useLocation, matchPath } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Icons } from '../constants';
 
 interface SidebarProps {
@@ -16,54 +16,19 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
 
   const location = useLocation();
   
-  // Xác định Project Context (bao gồm cả route projects và route logs)
-  const projectMatch = matchPath({ path: "/projects/:projectId/*" }, location.pathname);
-  const projectDetailMatch = matchPath({ path: "/projects/:projectId", end: true }, location.pathname);
-  const logMatch = matchPath({ path: "/logs/:projectId" }, location.pathname);
-  
-  const currentProjectId = projectMatch?.params.projectId || projectDetailMatch?.params.projectId || logMatch?.params.projectId;
-
   const toggleMenu = (key: string) => {
     setExpandedMenus(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const getContextAwareLink = (type: 'logs') => {
-    if (currentProjectId) {
-       return `/logs/${currentProjectId}`;
-    }
-    // Nếu chưa chọn dự án, link này sẽ dẫn về danh sách dự án để người dùng chọn
-    return '/projects';
   };
 
   // Logic kiểm tra Active Menu
   const checkActive = (itemLink: string) => {
     const currentPath = location.pathname;
 
-    // 1. Dashboard
+    // Dashboard
     if (itemLink === '/dashboard') return currentPath === '/dashboard';
 
-    // 2. Nhật ký thi công
-    if (itemLink.includes('/logs')) {
-       return currentPath.startsWith('/logs');
-    }
-
-    // 3. Danh sách dự án
-    if (itemLink === '/projects') {
-       // Active khi ở trang danh sách
-       if (currentPath === '/projects') return true;
-       
-       // Active khi đang ở trong chi tiết dự án (nhưng KHÔNG phải ở trang logs)
-       if (currentProjectId && !currentPath.startsWith('/logs')) return true;
-       
-       return false;
-    }
-
-    // 4. Các mục cài đặt khác
-    if (itemLink !== '/projects' && !itemLink.includes('/projects/') && !itemLink.includes('/logs/')) {
-       return currentPath.startsWith(itemLink);
-    }
-
-    return false;
+    // Các mục khác
+    return currentPath.startsWith(itemLink);
   };
 
   const sections = [
@@ -71,16 +36,16 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       id: 'catalog',
       label: 'QUẢN LÝ DỰ ÁN',
       items: [
-        { id: 'projects', label: 'Danh sách dự án', icon: Icons.Dashboard, link: '/projects' },
-        { id: 'logs', label: 'Nhật ký thi công', icon: Icons.Edit, link: getContextAwareLink('logs') },
+        { id: 'projects', label: 'Danh sách dự án', icon: Icons.Dashboard, link: '/projects', activeBase: '/projects' },
+        // Đã bỏ menu Nhật ký thi công riêng, truy cập thông qua Danh sách dự án
       ]
     },
     {
       id: 'settings',
       label: 'CẤU HÌNH & VẬT TƯ',
       items: [
-        { id: 'units', label: 'Đơn vị tính', icon: Icons.Settings, link: '/settings/units' },
-        { id: 'material_types', label: 'Phân loại vật tư', icon: Icons.Settings, link: '/settings/materials' },
+        { id: 'units', label: 'Đơn vị tính', icon: Icons.Settings, link: '/settings/units', activeBase: '/settings/units' },
+        { id: 'material_types', label: 'Phân loại vật tư', icon: Icons.Settings, link: '/settings/materials', activeBase: '/settings/materials' },
       ]
     }
   ];
@@ -132,7 +97,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
             {((!isCollapsed || window.innerWidth < 1024) ? expandedMenus[section.id] : true) && (
               <div className="space-y-1 mt-2">
                 {section.items.map((item) => {
-                  const isActive = checkActive(item.link);
+                  const isActive = checkActive(item.activeBase);
                   return (
                     <Link
                       key={item.id}
