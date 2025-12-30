@@ -57,3 +57,80 @@ export interface User {
   role: string;
   avatar: string;
 }
+
+// --- Project Details Specific Types ---
+
+export interface Role { 
+  id: string; 
+  name: string; 
+  memberCount: number; 
+  description?: string; 
+}
+
+export interface OrgMember { 
+  id: string; 
+  name: string; 
+  roleId: string; 
+  roleTitle: string; 
+  email: string; 
+  phone: string; 
+  avatar: string; 
+}
+
+export interface WorkDay { 
+  id: string; 
+  label: string; 
+  hours: number; 
+  isActive: boolean; 
+}
+
+export interface PermissionModule { 
+  id: string; 
+  label: string; 
+  level: number;
+  isExpanded?: boolean;
+  parentId?: string | null;
+  permissions: { view: boolean; add: boolean; edit: boolean; delete: boolean; }; 
+}
+
+export interface HistoryEntry { 
+  id: string; 
+  time: string; 
+  date: string; 
+  user: string; 
+  action: string; 
+  type: 'create' | 'edit' | 'status' | 'delete'; 
+}
+
+export interface Contract { 
+  id: string; 
+  code: string; 
+  name: string; 
+  value: string; 
+  date: string; 
+  status: 'active' | 'pending' | 'liquidated'; 
+  files: number; 
+}
+
+export interface Appendix { 
+  id: string; 
+  code: string; 
+  contractId: string; 
+  name: string; 
+  adjustValue: string; 
+  date: string; 
+}
+
+export interface ProjectInfo {
+  code: string;
+  name: string;
+  type: string;
+  phase: string;
+  startDate: string;
+  endDate: string;
+  manager: string;
+  location: string;
+  description: string;
+}
+
+export type DataScopeType = 'personal' | 'department' | 'all';
