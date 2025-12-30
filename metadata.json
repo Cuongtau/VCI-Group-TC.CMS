@@ -1,0 +1,5 @@
+{
+  "name": "TC.CMS Construction Manager System",
+  "description": "A comprehensive admin dashboard for managing construction project schedules with hierarchical task tracking, Gantt charts, and daily progress logs.",
+  "requestFramePermissions": []
+}

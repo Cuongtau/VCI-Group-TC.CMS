@@ -1,0 +1,130 @@
+
+import React, { useState } from 'react';
+import { Icons } from '../constants';
+import { Notification } from '../types';
+
+interface HeaderProps {
+  activeTab: string;
+  onLogout: () => void;
+  onMenuClick?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ activeTab, onLogout, onMenuClick }) => {
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [notifications] = useState<Notification[]>([
+    { id: '1', title: 'Cập nhật tiến độ', message: 'Hạng mục Cọc khoan nhồi đã hoàn thành 100%', time: '5 phút trước', isRead: false, type: 'success' },
+    { id: '2', title: 'Cảnh báo chậm trễ', message: 'Hạng mục Kết cấu thân P1 đang trễ 2 ngày', time: '1 giờ trước', isRead: false, type: 'warning' },
+    { id: '3', title: 'Hệ thống', message: 'Sao lưu dữ liệu dự án thành công', time: '2 giờ trước', isRead: true, type: 'info' },
+  ]);
+
+  const titles: Record<string, string> = {
+    dashboard: 'Tổng quan',
+    project_details: 'Thông tin dự án',
+    projects: 'Danh sách dự án',
+    progress: 'Tiến độ thi công',
+    logs: 'Nhật ký thi công',
+  };
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  return (
+    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 shrink-0 z-30">
+      <div className="flex items-center gap-3">
+        <button 
+          onClick={onMenuClick}
+          className="lg:hidden p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+        <h1 className="text-lg md:text-xl font-semibold text-slate-800 truncate max-w-[150px] md:max-w-none">
+          {titles[activeTab] || 'Quản lý'}
+        </h1>
+      </div>
+
+      <div className="flex items-center gap-2 md:gap-4">
+        <div className="relative group hidden md:block">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+            <Icons.Search />
+          </span>
+          <input 
+            type="text" 
+            placeholder="Tìm kiếm nhanh..."
+            className="pl-10 pr-4 py-1.5 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 w-48 transition-all focus:w-64 outline-none"
+          />
+        </div>
+
+        {/* Notifications */}
+        <div className="relative">
+          <button 
+            onClick={() => { setShowNotifications(!showNotifications); setShowProfileMenu(false); }}
+            className={`relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors ${showNotifications ? 'bg-slate-100' : ''}`}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full border-2 border-white font-bold">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
+          {showNotifications && (
+            <div className="fixed inset-x-4 md:absolute md:inset-auto md:right-0 mt-3 w-auto md:w-80 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-50">
+              <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+                <span className="font-bold text-slate-800">Thông báo</span>
+                <button className="text-xs text-blue-600 hover:underline">Đã đọc tất cả</button>
+              </div>
+              <div className="max-h-80 md:max-h-96 overflow-y-auto">
+                {notifications.map(n => (
+                  <div key={n.id} className={`p-4 border-b border-slate-50 hover:bg-slate-50 cursor-pointer transition-colors ${!n.isRead ? 'bg-blue-50/30' : ''}`}>
+                    <div className="flex justify-between items-start gap-2">
+                      <h4 className="text-sm font-semibold text-slate-800">{n.title}</h4>
+                      <span className="text-[10px] text-slate-400 shrink-0">{n.time}</span>
+                    </div>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">{n.message}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* User Profile */}
+        <div className="relative">
+          <div 
+            onClick={() => { setShowProfileMenu(!showProfileMenu); setShowNotifications(false); }}
+            className="flex items-center gap-2 md:gap-3 md:border-l border-slate-200 md:pl-4 cursor-pointer group"
+          >
+            <div className="text-right hidden md:block">
+              <p className="text-sm font-semibold text-slate-700 group-hover:text-blue-600 transition-colors">Hoàng Anh Lâm</p>
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Giám Đốc Dự Án</p>
+            </div>
+            <img src="https://picsum.photos/40/40" alt="Avatar" className="w-8 h-8 md:w-9 md:h-9 rounded-full border-2 border-slate-100 shadow-sm" />
+          </div>
+
+          {showProfileMenu && (
+            <div className="absolute right-0 mt-3 w-48 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-50 p-2">
+              <div className="md:hidden px-4 py-2 border-b border-slate-100 mb-1">
+                <p className="text-xs font-bold text-slate-800">Hoàng Anh Lâm</p>
+                <p className="text-[10px] text-slate-400">Giám đốc dự án</p>
+              </div>
+              <button className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors flex items-center gap-2">
+                <Icons.Settings /> Hồ sơ
+              </button>
+              <div className="my-1 border-t border-slate-100"></div>
+              <button 
+                onClick={onLogout}
+                className="w-full text-left px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 rounded-lg transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                Đăng xuất
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default Header;
